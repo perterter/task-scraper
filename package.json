@@ -1,6 +1,9 @@
 {
-  "name": "task-scraper-nest",
+  "name": "task-scraper",
   "version": "0.0.1",
+  "engines": {
+    "node": "^22.4.0"
+  },
   "description": "",
   "author": "",
   "private": true,
@@ -9,6 +12,9 @@
     "prebuild": "rimraf dist",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "cli": "node --experimental-require-module -r ts-node/register ./src/cli/index.ts",
+    "cli:debug": "node --experimental-require-module --inspect -r ts-node/register ./src/cli/index.ts",
+    "script": "node --experimental-require-module --inspect -r ts-node/register ./src/test.ts",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
@@ -25,6 +31,7 @@
     "@nestjs/common": "^8.0.0",
     "@nestjs/core": "^8.0.0",
     "@nestjs/platform-express": "^8.0.0",
+    "commander": "^12.1.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0"
@@ -70,3 +77,4 @@
     "testEnvironment": "node"
   }
 }
+
