@@ -1,5 +1,6 @@
 import { ParamID, Struct } from '@abextm/cache2';
 import { Injectable } from '@nestjs/common';
+import { replacer } from '../../../core/json-replacer';
 import { StructService } from '../../../core/services/struct/struct.service';
 
 @Injectable()
@@ -17,13 +18,13 @@ export class StructCommand {
 
   public async handleFind(searchString: string): Promise<void> {
     const structs: Struct[] = await this.structService.findStructs(searchString);
-    console.log(structs);
+    console.log(JSON.stringify(structs, replacer));
     console.log('total results', structs.length);
   }
 
-  public async handleFindByParam(paramKey: number | string, paramValue: number | string): Promise<void> {
+  public async handleFindByParam(paramKey: number | string, paramValue?: number | string): Promise<void> {
     const structs: Struct[] = await this.structService.findByParam(paramKey as ParamID, paramValue);
-    console.log(structs);
+    console.log(JSON.stringify(structs, replacer));
     console.log('total results', structs.length);
   }
 }

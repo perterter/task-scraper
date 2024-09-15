@@ -22,7 +22,7 @@ export function addStructCommand(commandName: string, program: RootCommand): voi
 
   const findByParam = new Command('find-by-param')
     .argument('<param-key>', 'parameter key to check value', ArgumentValidator.isNumberOrString)
-    .argument('<param-value>', 'parameter value to check', ArgumentValidator.isNumberOrString)
+    .argument('[param-value]', 'parameter value to check', ArgumentValidator.isNumberOrString)
     .action(async (paramKey: number | string, paramValue: number | string) => {
       const command: StructCommand = await getCommandInstance(StructCommand, StructCommandModule);
       await command.handleFindByParam(paramKey, paramValue);
@@ -30,7 +30,7 @@ export function addStructCommand(commandName: string, program: RootCommand): voi
 
   program
     .command(commandName)
-    .description('Gets armory summary for character')
+    .description('data operations related to structs')
     .addCommand(get)
     .addCommand(find)
     .addCommand(findByParam);

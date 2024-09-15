@@ -10,14 +10,15 @@ export class StructService {
     return Struct.load(this.cacheProvider, id);
   }
 
-  public async findByParam(paramKey: ParamID, paramValue: any): Promise<Struct[]> {
+  public async findByParam(paramKey: ParamID, paramValue?: any): Promise<Struct[]> {
     const all: Struct[] = await Struct.all(this.cacheProvider);
+    all.sort((a, b) => a.id - b.id);
     const found: Struct[] = all.filter((struct) => {
       const value: any = struct.params.get(paramKey);
       if (!value) {
         return false;
       }
-      if (value === paramValue) {
+      if (!paramValue || value === paramValue) {
         return true;
       }
     });
@@ -26,6 +27,7 @@ export class StructService {
 
   public async findStructs(searchString: string): Promise<Struct[]> {
     const all: Struct[] = await Struct.all(this.cacheProvider);
+    all.sort((a, b) => a.id - b.id);
     const found: Struct[] = all.filter((struct) => {
       for (const [_k, v] of struct.params.entries()) {
         if (typeof v !== 'string') {

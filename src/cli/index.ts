@@ -1,11 +1,9 @@
 import { addStructCommand } from './commands/struct/add-struct-command';
+import { addTasksCommand } from './commands/tasks/add-tasks-command';
 import { CustomNestFactory } from './custom-nest-factory';
 import { RootCommand } from './root-command';
 
-export async function getCommandInstance<TModule>(
-  command: any,
-  module: TModule,
-): Promise<any> {
+export async function getCommandInstance<TModule>(command: any, module: TModule): Promise<any> {
   const app = await CustomNestFactory.createApplicationContext(module);
   return app.get(command);
 }
@@ -18,6 +16,7 @@ const program = new RootCommand()
   .version(version);
 
 addStructCommand('struct', program);
+addTasksCommand('tasks', program);
 
 (async () => {
   try {
