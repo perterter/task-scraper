@@ -13,7 +13,61 @@ import { ISelectOption } from '../../select-option.interface';
 export class TasksCommand {
   constructor(private structService: StructService) {}
 
-  public async handleCombatTasks(): Promise<ITask[]> {
+  public async interactiveTaskExtraction() {
+    const mainParams = ['id', 'name', 'description', 'difficulty'];
+
+    // find structs based on a param id
+    const paramIdInput: string = await InteractivePrompt.input('enter a param id to search for task structs');
+    const findParamId: ParamID = Number.parseInt(paramIdInput) as ParamID;
+    const structs: Struct[] = await this.structService.findByParam(findParamId);
+
+    // map param ids to properties (show an example so  you can easily identify)
+    const exampleStruct: Struct = structs[0];
+    console.log('example to map from:');
+    console.log(JSON.stringify(exampleStruct, replacer, 2));
+
+    // map main params
+    const paramMap = new Map<string, ParamID>();
+    let unmappedParams: ISelectOption<ParamID>[] = Array.from(exampleStruct.params.keys()).map((paramId) => ({
+      name: '' + paramId,
+      value: paramId,
+    }));
+    for (const paramName of mainParams) {
+      const paramId: ParamID = await InteractivePrompt.select(`select the param for ${paramName}`, unmappedParams);
+      paramMap.set(paramName, paramId);
+      unmappedParams = unmappedParams.filter((unmapped) => unmapped.value !== paramId);
+    }
+
+    // map other params
+    let isMappingAdditional = unmappedParams.length > 0;
+    while (isMappingAdditional) {
+      const shouldContinue: boolean = await InteractivePrompt.confirm(
+        `there are ${unmappedParams.length} remaining unmapped params. would you like to map them?`,
+      );
+      if (!shouldContinue) {
+        break;
+      }
+      const paramId: ParamID = await InteractivePrompt.select('select the param to map', unmappedParams);
+      const paramName: string = await InteractivePrompt.input('enter the parameter name');
+      paramMap.set(paramName, paramId);
+      unmappedParams = unmappedParams.filter((unmapped) => unmapped.value !== paramId);
+    }
+
+    // set task type name
+    const name: string = await InteractivePrompt.input('enter the task type name');
+    console.log(
+      JSON.stringify(
+        {
+          name,
+          paramMap,
+        },
+        replacer,
+        2,
+      ),
+    );
+  }
+
+  public async handleCombatTasks(options: any): Promise<ITask[]> {
     const sortParamId: ParamID = 1306 as ParamID;
     const sortFunction = (a: Struct, b: Struct) => {
       const aSort = a.params.get(sortParamId) as number;
@@ -27,17 +81,39 @@ export class TasksCommand {
     const master: Struct[] = (await this.structService.findByParam(1310 as ParamID, 5)).sort(sortFunction);
     const grandmaster: Struct[] = (await this.structService.findByParam(1310 as ParamID, 6)).sort(sortFunction);
     const all = [...easy, ...medium, ...hard, ...elite, ...master, ...grandmaster];
-    const allAsTasks = all.map((s) => {
-      const out: ITask = {
-        id: s.params.get(sortParamId) as number,
-        name: s.params.get(1308 as ParamID) as string,
-        description: s.params.get(1309 as ParamID) as string,
-        clientSortId: s.params.get(sortParamId) as number,
-        params: {},
-      };
-      return out;
-    });
-    console.log(JSON.stringify(allAsTasks, replacer));
+    let allAsTasks: any[] = [];
+
+    if (options.legacy) {
+      allAsTasks = all.map((s, i) => {
+        const out = {
+          id: '' + (s.params.get(sortParamId) as number),
+          monster: '',
+          name: s.params.get(1308 as ParamID) as string,
+          description: s.params.get(1309 as ParamID) as string,
+          category: '',
+          tier: this.getLegacyTier(s.params.get(1310 as ParamID) as number),
+          clientSortId: '' + i,
+        };
+        return out;
+      });
+    } else {
+      allAsTasks = all.map((s, i) => {
+        const out: ITask = {
+          id: s.params.get(sortParamId) as number,
+          name: s.params.get(1308 as ParamID) as string,
+          description: s.params.get(1309 as ParamID) as string,
+          clientSortId: i,
+          params: {},
+        };
+        return out;
+      });
+    }
+
+    if (options.json) {
+      this.writeToFile(allAsTasks, 'combat.json');
+    } else {
+      console.log(JSON.stringify(allAsTasks, replacer));
+    }
     return allAsTasks;
   }
 
@@ -55,12 +131,12 @@ export class TasksCommand {
     const elite: Struct[] = (await this.structService.findByParam(difficultyParamId, 4)).sort(sortFunction);
     const master: Struct[] = (await this.structService.findByParam(difficultyParamId, 5)).sort(sortFunction);
     const all = [...easy, ...medium, ...hard, ...elite, ...master];
-    const allAsTasks = all.map((s) => {
+    const allAsTasks = all.map((s, i) => {
       const out: ITask = {
         id: s.params.get(sortParamId) as number,
         name: s.params.get(874 as ParamID) as string,
         description: s.params.get(875 as ParamID) as string,
-        clientSortId: s.params.get(sortParamId) as number,
+        clientSortId: i,
       };
       return out;
     });
@@ -96,12 +172,12 @@ export class TasksCommand {
       old: oldTasks.length,
       new: newTasks.length,
     });
-    this.writeToFile(oldTasks, './old-tasks.json');
-    this.writeToFile(newTasks, './new-tasks.json');
+    this.writeToFile(oldTasks, 'old-tasks.json');
+    this.writeToFile(newTasks, 'new-tasks.json');
   }
 
   private writeToFile(obj: any, fileNameAndPath: string): void {
-    writeFileSync(fileNameAndPath, JSON.stringify(obj, null, 2));
+    writeFileSync('./out/' + fileNameAndPath, JSON.stringify(obj, null, 2));
   }
 
   private getMismatches(oldTasks: ITask[], newTasks: ITask[]): any[] {
@@ -170,6 +246,25 @@ export class TasksCommand {
     } catch (error) {
       console.error('Error fetching JSON:', error);
       throw error;
+    }
+  }
+
+  private getLegacyTier(value: number): string {
+    switch (value) {
+      case 1:
+        return 'Easy';
+      case 2:
+        return 'Medium';
+      case 3:
+        return 'Hard';
+      case 4:
+        return 'Elite';
+      case 5:
+        return 'Master';
+      case 6:
+        return 'Grandmaster';
+      default:
+        throw new Error('invalid value ' + value);
     }
   }
 }
