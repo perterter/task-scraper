@@ -1,3 +1,4 @@
+import { addEnumCommand } from './commands/enum/add-enum-command';
 import { addStructCommand } from './commands/struct/add-struct-command';
 import { addTasksCommand } from './commands/tasks/add-tasks-command';
 import { CustomNestFactory } from './custom-nest-factory';
@@ -17,6 +18,7 @@ const program = new RootCommand()
 
 addStructCommand('struct', program);
 addTasksCommand('tasks', program);
+addEnumCommand('enum', program);
 
 (async () => {
   try {
