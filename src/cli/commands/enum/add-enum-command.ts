@@ -13,6 +13,25 @@ export function addEnumCommand(commandName: string, program: RootCommand): void 
       await command.handleGet(id);
     });
 
-  program.command(commandName).description('data operations related to enums').addCommand(get);
+  const findString = new Command('find-string')
+    .argument('<search-string>', 'string to search for in all string enums')
+    .action(async (searchString: string, _options: any) => {
+      const command: EnumCommand = await getCommandInstance(EnumCommand, EnumCommandModule);
+      await command.handleFindString(searchString);
+    });
+
+  const findStruct = new Command('find-struct')
+    .argument('<search-int>', 'number to search for in all struct enums', ArgumentValidator.isNumber)
+    .action(async (searchInt: number, _options: any) => {
+      const command: EnumCommand = await getCommandInstance(EnumCommand, EnumCommandModule);
+      await command.handleFindStruct(searchInt);
+    });
+
+  program
+    .command(commandName)
+    .description('data operations related to enums')
+    .addCommand(get)
+    .addCommand(findString)
+    .addCommand(findStruct);
 }
 

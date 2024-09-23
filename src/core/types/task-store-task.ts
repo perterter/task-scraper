@@ -1,16 +1,15 @@
-import { ITask } from './task.interface';
+import { ITask, ITaskSkill } from './task-mockup.interface';
 
 export class TaskStoreTask implements ITask {
-  id: number;
-  name: string;
-  description: string;
-  clientSortId: number;
-  params?: { [key: number]: any };
+  structId: number;
+  sortId: number;
+  skills: ITaskSkill[];
+  metadata: { [key: string]: string | number };
 
   constructor(storeData: any) {
-    this.id = Number.parseInt(storeData.id);
-    this.name = storeData.name;
-    this.description = storeData.description;
-    this.clientSortId = Number.parseInt(storeData.clientSortId);
+    this.structId = storeData.structId;
+    this.sortId = storeData.sortId;
+    this.skills = storeData.skills;
+    this.metadata = storeData.metadata;
   }
 }
