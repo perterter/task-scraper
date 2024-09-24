@@ -41,14 +41,5 @@ export class StructService {
     });
     return found;
   }
-
-  public async getSampleValuesForSameParams(sourceStruct: Struct): Promise<any> {
-    const example: { [key: number]: any[] } = {};
-    for (const paramId of sourceStruct.params.keys()) {
-      const samples: Struct[] = (await this.findByParam(paramId)).splice(0, 5);
-      example[paramId] = samples.map((s) => s.params.get(paramId));
-    }
-    return example;
-  }
 }
 

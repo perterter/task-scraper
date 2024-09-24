@@ -33,9 +33,10 @@ export function addTasksCommand(commandName: string, program: RootCommand): void
     .option('--description-param <descriptionParam>', 'override prompt for the description', ArgumentValidator.isNumber)
     .option('--tier-param <tierParam>', 'override prompt for the tier', ArgumentValidator.isNumber)
     .option('--addl-params', 'override prompt for additional params')
+    .option('--json', 'output to json file')
     .action(async (options: any) => {
       const command: TasksCommand = await getCommandInstance(TasksCommand, TasksCommandModule);
-      await command.interactiveTaskExtractionV2(options);
+      await command.handleTaskExtract(options);
     });
 
   program
