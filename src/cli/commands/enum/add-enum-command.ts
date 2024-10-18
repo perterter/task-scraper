@@ -13,6 +13,15 @@ export function addEnumCommand(commandName: string, program: RootCommand): void 
       await command.handleGet(id);
     });
 
+  const getMany = new Command('get-many')
+    .argument('<id-array>', 'array of ids', ArgumentValidator.isNumberArray)
+    .action(async (ids: number[], _options: any) => {
+      const command: EnumCommand = await getCommandInstance(EnumCommand, EnumCommandModule);
+      for (const id of ids) {
+        await command.handleGet(id);
+      }
+    });
+
   const findString = new Command('find-string')
     .argument('<search-string>', 'string to search for in all string enums')
     .action(async (searchString: string, _options: any) => {
@@ -31,6 +40,7 @@ export function addEnumCommand(commandName: string, program: RootCommand): void 
     .command(commandName)
     .description('data operations related to enums')
     .addCommand(get)
+    .addCommand(getMany)
     .addCommand(findString)
     .addCommand(findStruct);
 }

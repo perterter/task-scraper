@@ -1,5 +1,6 @@
 # cli output
 /out
+/osrs-cache
 
 # compiled output
 /dist

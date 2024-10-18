@@ -22,6 +22,8 @@ export class TasksCommand {
     if (options.json) {
       writeFileSync(`./out/${results.taskType.taskJsonName}.json`, JSON.stringify(results.tasks, null, 2));
       writeFileSync(`./out/${results.taskType.taskJsonName}-tasktype.json`, JSON.stringify(results.taskType, null, 2));
+    } else {
+      console.log(results);
     }
     return results;
   }
