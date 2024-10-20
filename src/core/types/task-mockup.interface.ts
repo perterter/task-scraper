@@ -1,3 +1,4 @@
+//TODO: update this from java
 export interface ITask {
   /**
    * Struct id for task data
@@ -19,6 +20,10 @@ export interface ITask {
    * - category = an extra category type that isn't a param
    */
   metadata?: { [key: string]: string | number };
+
+  wikiNotes?: string;
+
+  completionPercent?: number;
 }
 
 export interface ITaskSkill {

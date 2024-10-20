@@ -1,4 +1,4 @@
-import { CacheService } from '../core/services/cache.service';
+import { CacheService } from '../core/services/cache/cache.service';
 import { addCacheCommand } from './commands/cache/add-cache-command';
 import { CacheCommand } from './commands/cache/cache-command';
 import { addEnumCommand } from './commands/enum/add-enum-command';

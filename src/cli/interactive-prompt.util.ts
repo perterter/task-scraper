@@ -22,9 +22,10 @@ export class InteractivePrompt {
     return answers;
   }
 
-  public static async input(message: string): Promise<string> {
+  public static async input(message: string, defaultValue?: string): Promise<string> {
     const result = await input({
       message,
+      default: defaultValue,
     });
 
     return result;

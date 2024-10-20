@@ -4,6 +4,7 @@ import { PARAM_ID } from '../../../core/data/param-ids';
 import { replacer } from '../../../core/json-replacer';
 import { EnumService } from '../../../core/services/enum/enum.service';
 import { StructService } from '../../../core/services/struct/struct.service';
+import { WikiService } from '../../../core/services/wiki/wiki.service';
 import { ITask } from '../../../core/types/task-mockup.interface';
 import { ITaskType } from '../../../core/types/task-type-mockup.interface';
 import { InteractivePrompt } from '../../interactive-prompt.util';
@@ -14,7 +15,11 @@ import { IInteractiveTaskExtractResult } from './interactive-task-extract-result
 export class InteractiveTaskService {
   private readonly MAIN_PARAMS = ['id', 'name', 'description', 'tier'];
 
-  constructor(private structService: StructService, private enumService: EnumService) {}
+  constructor(
+    private structService: StructService,
+    private enumService: EnumService,
+    private wikiService: WikiService,
+  ) {}
 
   public async promptTaskExtraction(options: any): Promise<IInteractiveTaskExtractResult> {
     // search a name of a task => get name param id
@@ -106,9 +111,24 @@ export class InteractiveTaskService {
       pointMap: [],
     };
 
+    // extract wiki data
+    const wikiUrl: string = await InteractivePrompt.input(
+      'enter the wiki url with all tasks on it',
+      'https://oldschool.runescape.wiki/w/Trailblazer_Reloaded_League/Tasks',
+    );
+    const taskIdAttribute: string = await InteractivePrompt.input(
+      'enter the task id attribute (from the tr elements)',
+      'data-taskid',
+    );
+    const allTasksWithWikiData = await this.wikiService.extractAndAppendData(
+      allTasksFormatted,
+      wikiUrl,
+      taskIdAttribute,
+    );
+
     return {
       taskType: taskTypeDefinition,
-      tasks: allTasksFormatted,
+      tasks: allTasksWithWikiData,
     };
   }
 

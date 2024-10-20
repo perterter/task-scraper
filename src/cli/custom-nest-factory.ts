@@ -1,6 +1,6 @@
 import { INestApplicationContext, NestApplicationOptions } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { CacheServiceModule } from '../core/services/cache-service.module';
+import { CacheServiceModule } from '../core/services/cache/cache-service.module';
 
 export let GLOBAL_NEST_OPTIONS: NestApplicationOptions = {};
 

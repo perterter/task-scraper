@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import axios from 'axios';
 import * as fs from 'fs';
-import fetch from 'node-fetch';
 import * as path from 'path';
 
 const GITHUB_API_URL = 'https://api.github.com/repos';
@@ -24,11 +24,8 @@ export class CacheService {
   private async fetchRepoContents(repoPath: string): Promise<any[]> {
     const url = `${GITHUB_API_URL}/${REPO_OWNER}/${REPO_NAME}/contents/${repoPath}`;
     try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`Error fetching repository contents: ${response.statusText}`);
-      }
-      return await response.json();
+      const response = await axios.get(url);
+      return response.data;
     } catch (error) {
       console.error(`Error fetching repository contents from ${url}`, error);
       throw error;
@@ -38,12 +35,8 @@ export class CacheService {
   // Downloads a file from the GitHub repo and saves it locally
   private async downloadFile(fileUrl: string, filePath: string): Promise<void> {
     try {
-      const response = await fetch(fileUrl);
-      if (!response.ok) {
-        throw new Error(`Error downloading file: ${response.statusText}`);
-      }
-      const buffer = await response.arrayBuffer();
-      fs.writeFileSync(filePath, Buffer.from(buffer));
+      const response = await axios.get(fileUrl, { responseType: 'arraybuffer' });
+      fs.writeFileSync(filePath, Buffer.from(response.data));
       console.log(`Downloaded file: ${filePath}`);
     } catch (error) {
       console.error(`Error downloading file from ${fileUrl}`, error);
@@ -91,12 +84,8 @@ export class CacheService {
   private async getLatestCommitHash(): Promise<string> {
     const commitsUrl = `${GITHUB_API_URL}/${REPO_OWNER}/${REPO_NAME}/commits`;
     try {
-      const response = await fetch(commitsUrl);
-      if (!response.ok) {
-        throw new Error(`Error fetching latest commit: ${response.statusText}`);
-      }
-      const commits = await response.json();
-      return commits[0].sha; // Get the latest commit hash
+      const response = await axios.get(commitsUrl);
+      return response.data[0].sha; // Get the latest commit hash
     } catch (error) {
       console.error(`Error fetching latest commit from ${commitsUrl}`, error);
       throw error;

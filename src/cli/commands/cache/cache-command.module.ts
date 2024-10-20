@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { CacheServiceModule } from '../../../core/services/cache-service.module';
+import { CacheServiceModule } from '../../../core/services/cache/cache-service.module';
 import { CacheCommand } from './cache-command';
 
 @Module({

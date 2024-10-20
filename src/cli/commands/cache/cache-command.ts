@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CacheService } from '../../../core/services/cache.service';
+import { CacheService } from '../../../core/services/cache/cache.service';
 
 @Injectable()
 export class CacheCommand {
