@@ -7,7 +7,7 @@ export class PARAM_ID {
   static LEAGUE_DESCRIPTION: ParamID = 875 as ParamID;
   static LEAGUE_TIER_ID: ParamID = 1852 as ParamID;
   // Combat achievements
-  static CA_VARBIT_INDEX: ParamID = 1307 as ParamID;
+  static CA_VARBIT_INDEX: ParamID = 1306 as ParamID;
   static CA_NAME: ParamID = 1308 as ParamID;
   static CA_DESCRIPTION: ParamID = 1309 as ParamID;
   static CA_MONSTER_ID: ParamID = 1312 as ParamID;

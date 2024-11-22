@@ -1,9 +1,8 @@
-import { Struct } from '@abextm/cache2';
+import { ParamID, Struct } from '@abextm/cache2';
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { PARAM_ID } from '../../data/param-ids';
-import { ITask } from '../../types/task-mockup.interface';
+import { ITask, ITaskSkill } from '../../types/task-mockup.interface';
 import { StructService } from '../struct/struct.service';
 import { IColumnDefinitions } from './column-definitions.interface';
 import { SKILL_NAMES } from './skills';
@@ -17,12 +16,13 @@ export class WikiService {
     tasks: ITask[],
     wikiUrl: string,
     taskIdAttribute: string,
+    varbitIndexParamId: ParamID,
     columnDefinitions: IColumnDefinitions,
   ): Promise<ITask[]> {
     const tasksByVarbitIndex: Map<number, ITask> = new Map();
     for (const task of tasks) {
       const struct: Struct = await this.structService.getStruct(task.structId);
-      const varbitIndex = struct.params.get(PARAM_ID.LEAGUE_VARBIT_INDEX) as number;
+      const varbitIndex = struct.params.get(varbitIndexParamId) as number;
       tasksByVarbitIndex.set(varbitIndex, task);
     }
 
@@ -77,47 +77,59 @@ export class WikiService {
           description = $(descriptionCell).text().trim();
         }
 
-        // requirements
-        const requirementsCell = cells[columnDefinitions.requirementsColumnId];
+        // notes & skills
+        let notes: string = undefined;
+        let skills: ITaskSkill[] = [];
+        if (columnDefinitions.requirementsColumnId) {
+          const requirementsCell = cells[columnDefinitions.requirementsColumnId];
 
-        // suffix coins image and amount with word "coins"
-        const coinElements = $(requirementsCell).find('span.coins');
-        if (coinElements.length > 0) {
-          const amountOfCoins = $(coinElements).text();
-          const plural = amountOfCoins !== '1';
-          $(coinElements).text(`${amountOfCoins} coin${plural ? 's' : ''}`);
-        }
-
-        // replace region "buttons" with just their name
-        const regionElements = $(requirementsCell).find('span.tbz-region');
-        if (regionElements.length > 0) {
-          for (const regionElement of regionElements) {
-            const cleanedRegion = $(regionElement).text().replace('✓', '').trim();
-            $(regionElement).text(cleanedRegion);
+          // suffix coins image and amount with word "coins"
+          const coinElements = $(requirementsCell).find('span.coins');
+          if (coinElements.length > 0) {
+            const amountOfCoins = $(coinElements).text();
+            const plural = amountOfCoins !== '1';
+            $(coinElements).text(`${amountOfCoins} coin${plural ? 's' : ''}`);
           }
-        }
 
-        // parse skills
-        const scps = $(requirementsCell).find('span.scp');
-        const skills = [];
-        for (const scp of scps) {
-          const skill = $(scp).attr('data-skill')?.toUpperCase();
-          const level = $(scp).attr('data-level');
-          if (!SKILL_NAMES.has(skill)) continue;
-          skills.push({
-            skill,
-            level,
-          });
-        }
+          // replace region "buttons" with just their name
+          const regionElements = $(requirementsCell).find('span.tbz-region');
+          if (regionElements.length > 0) {
+            for (const regionElement of regionElements) {
+              const cleanedRegion = $(regionElement).text().replace('✓', '').trim();
+              $(regionElement).text(cleanedRegion);
+            }
+          }
 
-        // replace linebreaks in the cell with a space, so they're not appended to the previous line without a space
-        let cleanedHtml = $(requirementsCell).html().replace('<br>', ' ');
-        $(requirementsCell).html(cleanedHtml);
+          // parse skills
+          const scps = $(requirementsCell).find('span.scp');
+          for (const scp of scps) {
+            const skill = $(scp).attr('data-skill')?.toUpperCase();
+            if (!SKILL_NAMES.has(skill)) continue;
 
-        // get requirements cell text
-        let requirementsCellText = $(requirementsCell).text().trim();
-        if (requirementsCellText === 'N/A') {
-          requirementsCellText = undefined;
+            const levelString = $(scp).attr('data-level');
+            try {
+              const level = Number.parseInt(levelString);
+              skills.push({
+                skill,
+                level,
+              });
+            } catch (ex) {
+              console.error(
+                `unable to parse skill (${skill}) level "${levelString}" for task varbit index ${varbitIndex}' + )`,
+              );
+            }
+          }
+
+          // replace linebreaks in the cell with a space, so they're not appended to the previous line without a space
+          let cleanedHtml = $(requirementsCell).html().replace('<br>', ' ');
+          $(requirementsCell).html(cleanedHtml);
+
+          // get requirements cell text
+          let requirementsCellText = $(requirementsCell).text().trim();
+          if (requirementsCellText === 'N/A') {
+            requirementsCellText = undefined;
+          }
+          notes = requirementsCellText;
         }
 
         let completionPercent: number = undefined;
@@ -130,7 +142,7 @@ export class WikiService {
           varbitIndex,
           name,
           description,
-          notes: requirementsCellText,
+          notes,
           completionPercent,
           skills: skills?.length > 0 ? skills : undefined,
         };

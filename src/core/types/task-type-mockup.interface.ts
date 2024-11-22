@@ -1,3 +1,6 @@
+/**
+ * Represents a task type with relevant configuration for UI display and task management
+ */
 export interface ITaskType {
   /**
    * Name of the task type for UI display
@@ -15,22 +18,54 @@ export interface ITaskType {
   isEnabled: boolean;
 
   /**
-   * Filename for the task json found in the tasks directory of task-json-store
-   * Extension not included
+   * Filename for the task JSON found in the tasks directory of task-json-store
+   * Extension not included.
    */
   taskJsonName: string;
 
   /**
-   * Filters for the task type based on skills required or any param in paramMap
+   * Filters for the task type
    */
-  filters: { [key: string]: IFilterConfig };
+  filters: FilterConfig[];
 
   /**
    * A dictionary of parameters relevant to the task, with required id, name, description, tier
-   * The key is the plain english name for the parameter
-   * The value is the OSRS cache Struct ParamID that matches with the plain english parameter
+   * The key is the plain English name for the parameter
+   * The value is an array of OSRS cache Struct ParamIDs that match with the plain English parameter
+   * Generally, there is only 1 value in the array, but multiple are available for fallback
    */
-  paramMap: { [key: string]: number };
+  intParamMap: Record<string, number>;
+
+  /**
+   * A dictionary of parameters relevant to the task, with required id, name, description, tier
+   * The key is the plain English name for the parameter
+   * The value is an array of OSRS cache Struct ParamIDs that match with the plain English parameter
+   * Generally, there is only 1 value in the array, but multiple are available for fallback
+   */
+  stringParamMap: Record<string, number>;
+
+  /**
+   * A dictionary of integer enums relevant to the task type
+   * The key is the plain English name describing the enum
+   * The value is an integer representing the enum id
+   * e.g. "tierSprites": 3213 (tier id maps to a sprite id)
+   */
+  intEnumMap: Record<string, number>;
+
+  /**
+   * A dictionary of string enums relevant to the task type
+   * The key is the plain English name describing the enum
+   * The value is an integer representing the enum id
+   * e.g. "tierNames": 4757 (tier id maps to a sprite id)
+   */
+  stringEnumMap: Record<string, number>;
+
+  /**
+   * A dictionary of tier sprite ids
+   * The key is a string representation of the tier id integer
+   * The value is an integer representing the sprite id
+   */
+  tierSpriteIdMap: Record<string, number>;
 
   /**
    * Varps used to store task progress
@@ -41,7 +76,7 @@ export interface ITaskType {
   /**
    * Other varps used for the task type
    * Used for exports from the plugin
-   * Examples in the past: League Points, Sages Renown
+   * Examples in the past: League Points, Sage Renown
    */
   otherVarps: number[];
 
@@ -53,26 +88,91 @@ export interface ITaskType {
   varbits: number[];
 
   /**
-   * The point values for difficulties/tiers
-   * Ordinal (i.e. index 0 = tier 1 = Easy; index 1 = tier 2 = Medium)
+   * The script id used to parse the completion of a task
+   * This is a rs2asm script
+   * Example: Combat achievements = script 4834
    */
-  pointMap: number[];
+  taskCompletedScriptId: number;
 }
 
-export interface IFilterConfig {
+/**
+ * Represents the configuration for a filter
+ */
+export interface FilterConfig {
   /**
-   * The filter type key, see the types of filters supported for key
+   * Key under which to store the filter's selected values, generally prefixed by task type
    */
-  key: string;
+  configKey: string;
 
   /**
-   * The source of the value(s) to use for the filter
+   * The label displayed in the UI with the filter
    */
-  valueType: "PARAM" | "SKILL" | "METADATA";
+  label: string;
+
+  /**
+   * The filter type, see enum for types of filters supported
+   */
+  filterType: FilterType;
+
+  /**
+   * The source of the value(s) to use for the filter, see enum for types of values supported
+   * If global is specified then configKey must match a filter config defined in filters.json
+   */
+  valueType: FilterValueType;
 
   /**
    * The name of the param or metadata property to use for the filter
-   * Can be left undefined for SKILL value type
+   * Can be left null for SKILL value type
    */
   valueName?: string;
+
+  /**
+   * Name of an enum specified in `TaskTypeDefinition.stringEnumMap` to provide labels for the filter
+   * Specifying this property will override the displayed integer value of `valueName`
+   */
+  optionLabelEnum?: string;
+
+  /**
+   * Item values in a button filter (dropdown not yet supported)
+   */
+  customItems: FilterCustomItem[];
+}
+
+/**
+ * Represents a custom item in the filter
+ */
+export interface FilterCustomItem {
+  /**
+   * The value associated with the custom item
+   */
+  value: number | null;
+
+  /**
+   * Tooltip text for the custom item
+   */
+  tooltip: string;
+
+  /**
+   * The sprite ID associated with the custom item
+   */
+  spriteId: number | null;
+}
+
+/**
+ * Enum representing the filter types supported
+ */
+export enum FilterType {
+  BUTTON_FILTER = 'BUTTON_FILTER',
+  DROPDOWN_FILTER = 'DROPDOWN_FILTER',
+}
+
+/**
+ * Enum representing the filter value types supported
+ */
+export enum FilterValueType {
+  PARAM_INTEGER = 'PARAM_INTEGER',
+  PARAM_STRING = 'PARAM_STRING',
+  SKILL = 'SKILL',
+  METADATA = 'METADATA',
+  GLOBAL = 'GLOBAL',
 }
