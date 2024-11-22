@@ -4,6 +4,7 @@ import { CacheCommand } from './commands/cache/cache-command';
 import { addEnumCommand } from './commands/enum/add-enum-command';
 import { addStructCommand } from './commands/struct/add-struct-command';
 import { addTasksCommand } from './commands/tasks/add-tasks-command';
+import { addWikiCommand } from './commands/wiki/add-wiki-command';
 import { CustomNestFactory } from './custom-nest-factory';
 import { RootCommand } from './root-command';
 
@@ -30,6 +31,7 @@ addStructCommand('struct', program);
 addTasksCommand('tasks', program);
 addEnumCommand('enum', program);
 addCacheCommand('cache', program);
+addWikiCommand('wiki', program);
 
 (async () => {
   try {

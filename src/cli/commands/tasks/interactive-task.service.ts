@@ -9,6 +9,7 @@ import { ITask } from '../../../core/types/task-mockup.interface';
 import { ITaskType } from '../../../core/types/task-type-mockup.interface';
 import { InteractivePrompt } from '../../interactive-prompt.util';
 import { ISelectOption } from '../../select-option.interface';
+import { LEAGUE_5_COLUMNS } from './column-definitions/league-5-columns';
 import { IInteractiveTaskExtractResult } from './interactive-task-extract-result.interface';
 
 @Injectable()
@@ -114,7 +115,7 @@ export class InteractiveTaskService {
     // extract wiki data
     const wikiUrl: string = await InteractivePrompt.input(
       'enter the wiki url with all tasks on it',
-      'https://oldschool.runescape.wiki/w/Trailblazer_Reloaded_League/Tasks',
+      'https://oldschool.runescape.wiki/w/Raging_Echoes_League/Tasks',
     );
     const taskIdAttribute: string = await InteractivePrompt.input(
       'enter the task id attribute (from the tr elements)',
@@ -124,6 +125,7 @@ export class InteractiveTaskService {
       allTasksFormatted,
       wikiUrl,
       taskIdAttribute,
+      LEAGUE_5_COLUMNS,
     );
 
     return {
