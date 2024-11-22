@@ -1,6 +1,9 @@
 {
-  "name": "task-scraper",
+  "name": "@osrs-reldo/task-scraper",
   "version": "0.0.1",
+  "repository": {
+    "url": "git://github.com/osrs-reldo/task-scraper.git"
+  },
   "engines": {
     "node": "^22.4.0"
   },
