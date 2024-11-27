@@ -1,3 +1,4 @@
+import { ParamID } from '@abextm/cache2';
 import { Command } from 'commander';
 import { getCommandInstance } from '../..';
 import { ArgumentValidator } from '../../../core/argument-validator';
@@ -39,11 +40,22 @@ export function addTasksCommand(commandName: string, program: RootCommand): void
       await command.handleTaskExtract(options);
     });
 
+  const generateFrontendTasks = new Command('generate-frontend-tasks')
+    .description('Generates a hydrated list of tasks in the form the frontend requires')
+    .argument('<task-type-name>', 'extensionless filename for the .json that holds task data in task-json-store')
+    .argument('<name-param-id>', "the task structs' string name param id", ArgumentValidator.isNumber)
+    .argument('<description-param-id>', "the task structs' string description param id", ArgumentValidator.isNumber)
+    .action(async (jsonFilename: string, nameParamId: ParamID, descriptionParamId: ParamID) => {
+      const command: TasksCommand = await getCommandInstance(TasksCommand, TasksCommandModule);
+      await command.handleGenerateFrontendTasks(jsonFilename, nameParamId, descriptionParamId);
+    });
+
   program
     .command(commandName)
     .description('data operations related to tasks')
     .addCommand(combatTasks)
     .addCommand(combatCompare)
     .addCommand(leagues4)
-    .addCommand(extract);
+    .addCommand(extract)
+    .addCommand(generateFrontendTasks);
 }
