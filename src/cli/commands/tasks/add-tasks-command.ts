@@ -36,6 +36,7 @@ export function addTasksCommand(commandName: string, program: RootCommand): void
     .option('--tier-param <tierParam>', 'override prompt for the tier', ArgumentValidator.isNumber)
     .option('--addl-params', 'override prompt for additional params')
     .option('--json', 'output to json file')
+    .option('--task-only', 'skip generation for the task-type')
     .action(async (options: any) => {
       const command: TasksCommand = await getCommandInstance(TasksCommand, TasksCommandModule);
       await command.handleTaskExtract(options);
@@ -43,11 +44,7 @@ export function addTasksCommand(commandName: string, program: RootCommand): void
 
   const generateFrontendTasks = new Command('generate-frontend-tasks')
     .description('Generates a hydrated list of tasks in the form the frontend requires')
-    .argument(
-      '<task-type-name>',
-      'extensionless filename for the .json that holds task data in task-json-store',
-      'LEAGUE_5',
-    )
+    .argument('<task-type-name>', 'extensionless filename for the .json that holds task data in task-json-store')
     .argument(
       '<name-param-id>',
       "the task structs' string name param id",

@@ -63,32 +63,39 @@ export class InteractiveTaskService {
     );
     console.log('wiki data appended');
 
-    console.log('define task type:');
-    const name: string = options.name ?? (await InteractivePrompt.input('enter the task type name'));
-    const description: string = options.description ?? (await InteractivePrompt.input('enter a task type description'));
     const taskJsonName: string = options.taskJsonName ?? (await InteractivePrompt.input('enter a task json name'));
-    const taskTypeDefinition: ITaskType = {
-      name,
-      description,
-      isEnabled: true,
-      taskJsonName,
-      filters: [], // defined after task type definition
-      taskVarps: await this.promptTaskVarps(),
-      otherVarps: [],
-      varbits: [],
-      intParamMap: this.getIntParamMap(foundTaskStruct, paramMap),
-      stringParamMap: this.getStringParamMap(foundTaskStruct, paramMap),
-      intEnumMap: undefined, // unused by plugin
-      stringEnumMap: await this.promptStringEnumMap(),
-      tierSpriteIdMap: await this.promptTierSpriteIdMap(),
-      taskCompletedScriptId: await this.promptTaskCompletedScriptId(),
-    };
 
-    console.log('interactive task extraction complete!');
-    return {
-      taskType: taskTypeDefinition,
+    let taskTypeDefinition: ITaskType = undefined;
+    if (!options.taskOnly) {
+      console.log('define task type:');
+      const name: string = options.name ?? (await InteractivePrompt.input('enter the task type name'));
+      const description: string =
+        options.description ?? (await InteractivePrompt.input('enter a task type description'));
+      taskTypeDefinition = {
+        name,
+        description,
+        isEnabled: true,
+        taskJsonName,
+        filters: [], // defined after task type definition
+        taskVarps: await this.promptTaskVarps(),
+        otherVarps: [],
+        varbits: [],
+        intParamMap: this.getIntParamMap(foundTaskStruct, paramMap),
+        stringParamMap: this.getStringParamMap(foundTaskStruct, paramMap),
+        intEnumMap: undefined, // unused by plugin
+        stringEnumMap: await this.promptStringEnumMap(),
+        tierSpriteIdMap: await this.promptTierSpriteIdMap(),
+        taskCompletedScriptId: await this.promptTaskCompletedScriptId(),
+      };
+    }
+
+    const result = {
+      taskJsonName,
+      taskType: undefined,
       tasks: allTasksWithWikiData,
     };
+    console.log('interactive task extraction complete!');
+    return result;
   }
 
   private async promptTaskVarps(): Promise<number[]> {

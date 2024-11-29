@@ -21,8 +21,10 @@ export class TasksCommand {
   public async handleTaskExtract(options: any): Promise<IInteractiveTaskExtractResult> {
     const results: IInteractiveTaskExtractResult = await this.interactivetaskService.promptTaskExtraction(options);
     if (options.json) {
-      writeFileSync(`./out/${results.taskType.taskJsonName}.json`, JSON.stringify(results.tasks, null, 2));
-      writeFileSync(`./out/${results.taskType.taskJsonName}-tasktype.json`, JSON.stringify(results.taskType, null, 2));
+      writeFileSync(`./out/${results.taskJsonName}.json`, JSON.stringify(results.tasks, null, 2));
+      if (!options.taskOnly) {
+        writeFileSync(`./out/${results.taskJsonName}-tasktype.json`, JSON.stringify(results.taskType, null, 2));
+      }
     } else {
       console.log(results);
     }
