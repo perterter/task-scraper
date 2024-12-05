@@ -46,14 +46,15 @@ export class InteractiveTaskService {
     console.log('task data extracted');
 
     console.log('appending wiki data...');
-    const wikiUrl: string = await InteractivePrompt.input(
-      'enter the wiki url with all tasks on it',
-      'https://oldschool.runescape.wiki/w/Raging_Echoes_League/Tasks',
-    );
-    const taskIdAttribute: string = await InteractivePrompt.input(
-      'enter the task id attribute (from the tr elements)',
-      'data-taskid',
-    );
+    const wikiUrl: string =
+      options.wikiUrl ??
+      (await InteractivePrompt.input(
+        'enter the wiki url with all tasks on it',
+        'https://oldschool.runescape.wiki/w/Raging_Echoes_League/Tasks',
+      ));
+    const taskIdAttribute: string =
+      options.taskIdAttribute ??
+      (await InteractivePrompt.input('enter the task id attribute (from the tr elements)', 'data-taskid'));
     const allTasksWithWikiData = await this.wikiService.extractAndAppendData(
       allTasksFormatted,
       wikiUrl,

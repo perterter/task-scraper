@@ -42,6 +42,11 @@ export function addTasksCommand(commandName: string, program: RootCommand): void
       await command.handleTaskExtract(options);
     });
 
+  const wikiUpdate = new Command('wiki-update').action(async (_options: any) => {
+    const command: TasksCommand = await getCommandInstance(TasksCommand, TasksCommandModule);
+    await command.handleWikiUpdate();
+  });
+
   const generateFrontendTasks = new Command('generate-frontend-tasks')
     .description('Generates a hydrated list of tasks in the form the frontend requires')
     .argument('<task-type-name>', 'extensionless filename for the .json that holds task data in task-json-store')
@@ -103,5 +108,6 @@ export function addTasksCommand(commandName: string, program: RootCommand): void
     .addCommand(combatCompare)
     .addCommand(leagues4)
     .addCommand(extract)
+    .addCommand(wikiUpdate)
     .addCommand(generateFrontendTasks);
 }

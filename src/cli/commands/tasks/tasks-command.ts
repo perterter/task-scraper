@@ -31,6 +31,24 @@ export class TasksCommand {
     return results;
   }
 
+  public async handleWikiUpdate(): Promise<IInteractiveTaskExtractResult> {
+    const options = {
+      taskOnly: true,
+      taskName: 'Open the Leagues Menu',
+      idParam: PARAM_ID.LEAGUE_VARBIT_INDEX,
+      nameParam: PARAM_ID.LEAGUE_NAME,
+      descriptionParam: PARAM_ID.LEAGUE_DESCRIPTION,
+      tierParam: PARAM_ID.LEAGUE_TIER_ID,
+      wikiUrl: 'https://oldschool.runescape.wiki/w/Raging_Echoes_League/Tasks',
+      taskIdAttribute: 'data-taskid',
+      taskJsonName: 'LEAGUE_5',
+      addlParams: false,
+    };
+    const results: IInteractiveTaskExtractResult = await this.interactivetaskService.promptTaskExtraction(options);
+    writeFileSync(`../task-json-store/tasks/${results.taskJsonName}.min.json`, JSON.stringify(results.tasks));
+    return results;
+  }
+
   public async handleGenerateFrontendTasks(
     jsonFilename: string,
     nameParamId: ParamID,
