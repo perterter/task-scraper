@@ -25,7 +25,7 @@ import * as path from 'path';
         }
 
         const cacheProvider = new FlatCacheProvider(
-          new NodeFSFileProvider('../osrs-cache'),
+          new NodeFSFileProvider('./osrs-cache'),
         );
         return cacheProvider;
       },
