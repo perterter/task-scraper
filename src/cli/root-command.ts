@@ -10,11 +10,17 @@ export class RootCommand extends CommanderCommand {
       );
     }
     this.addVerboseOption();
+    this.addCommitOption();
     this.addVerbosePrehook();
   }
 
   private addVerboseOption() {
     this.option('-v, --verbose', 'enable verbose mode');
+    return this;
+  }
+
+  private addCommitOption() {
+    this.option('-c, --commit <hash>', 'use specific commit hash for cache operations (default: latest)');
     return this;
   }
 

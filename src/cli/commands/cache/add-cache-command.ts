@@ -5,11 +5,22 @@ import { CacheCommand } from './cache-command';
 import { CacheCommandModule } from './cache-command.module';
 
 export function addCacheCommand(commandName: string, program: RootCommand): void {
-  const update = new Command('update').action(async (_options: any) => {
-    const command: CacheCommand = await getCommandInstance(CacheCommand, CacheCommandModule);
-    await command.handleUpdate();
-  });
+  const update = new Command('update')
+    .action(async () => {
+      const globalOptions = program.opts();
+      const command: CacheCommand = await getCommandInstance(CacheCommand, CacheCommandModule);
+      await command.handleUpdate(globalOptions.commit);
+    });
 
-  program.command(commandName).description('operations related to the osrs cache').addCommand(update);
+  const status = new Command('status')
+    .action(async () => {
+      const command: CacheCommand = await getCommandInstance(CacheCommand, CacheCommandModule);
+      await command.handleStatus();
+    });
+
+  program.command(commandName)
+    .description('operations related to the osrs cache')
+    .addCommand(update)
+    .addCommand(status);
 }
 
