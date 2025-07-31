@@ -12,11 +12,29 @@ export async function getCommandInstance<TModule>(command: any, module: TModule)
   const app = await CustomNestFactory.createApplicationContext(module);
 
   const cacheService = app.get(CacheService);
-  const isUpToDate = await cacheService.isCacheUpToDate();
-  if (!isUpToDate && command !== CacheCommand) {
-    console.log('The cache is out of date. Update the cache by running: task-scraper cache update');
-    process.exit(1);
+  const rootOptions = program.opts();
+  
+  // Only update cache for non-cache commands (to avoid recursion)
+  if (command !== CacheCommand) {
+    const targetCommit = rootOptions.commit;
+    
+    if (targetCommit) {
+      // Validate the specific commit if provided
+      const isValidCommit = await cacheService.validateCommitHash(targetCommit);
+      if (!isValidCommit) {
+        console.error(`Invalid commit hash: ${targetCommit}. Commit not found in repository.`);
+        process.exit(1);
+      }
+      console.log(`Updating cache to commit ${targetCommit}...`);
+      await cacheService.updateCache(targetCommit);
+    } else {
+      // Update to latest commit
+      console.log('Updating cache to latest commit...');
+      await cacheService.updateCache();
+    }
+    console.log('Cache update complete. Continuing with command...');
   }
+
   return app.get(command);
 }
 

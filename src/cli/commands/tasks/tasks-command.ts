@@ -184,7 +184,7 @@ export class TasksCommand {
 
   private writeToFile(obj: any, fileNameAndPath: string): void {
     mkdirSync('./out', { recursive: true });
-    writeFileSync('./out/' + fileNameAndPath, JSON.stringify(obj, null, 2));
+    writeFileSync('./out/' + fileNameAndPath, JSON.stringify(obj, null));
   }
 
   private getLegacyTier(value: number): string {

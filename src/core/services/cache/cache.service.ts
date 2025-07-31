@@ -11,18 +11,16 @@ const versionFilePath = path.join('./osrs-cache', 'cache-version.txt');
 
 @Injectable()
 export class CacheService {
-  public async updateCache(): Promise<void> {
-    // Run the function to download the repository
-    this.downloadRepository();
-    // Fetch the latest commit hash to use as the version
-    const latestVersion = await this.getLatestCommitHash();
-    // Update the version file
-    this.updateVersionFile(latestVersion);
+  public async updateCache(targetCommitHash?: string): Promise<void> {
+    const commitToUse = targetCommitHash || await this.getLatestCommitHash();
+    await this.downloadRepository(commitToUse);
+    this.updateVersionFile(commitToUse);
   }
 
-  // Fetches the contents of a given path in the repository
-  private async fetchRepoContents(repoPath: string): Promise<any[]> {
-    const url = `${GITHUB_API_URL}/${REPO_OWNER}/${REPO_NAME}/contents/${repoPath}`;
+  // Fetches the contents of a given path in the repository for a specific commit
+  private async fetchRepoContents(repoPath: string, commitHash?: string): Promise<any[]> {
+    const refParam = commitHash ? `?ref=${commitHash}` : '';
+    const url = `${GITHUB_API_URL}/${REPO_OWNER}/${REPO_NAME}/contents/${repoPath}${refParam}`;
     try {
       const response = await axios.get(url);
       return response.data;
@@ -44,9 +42,9 @@ export class CacheService {
     }
   }
 
-  // Recursively downloads the contents of a GitHub repository
-  private async downloadRepoContents(repoPath: string, localPath: string): Promise<void> {
-    const contents = await this.fetchRepoContents(repoPath);
+  // Recursively downloads the contents of a GitHub repository for a specific commit
+  private async downloadRepoContents(repoPath: string, localPath: string, commitHash?: string): Promise<void> {
+    const contents = await this.fetchRepoContents(repoPath, commitHash);
 
     for (const item of contents) {
       const itemPath = path.join(localPath, item.name);
@@ -56,7 +54,7 @@ export class CacheService {
           fs.mkdirSync(itemPath, { recursive: true });
         }
         // Recursively process the directory
-        await this.downloadRepoContents(`${repoPath}/${item.name}`, itemPath);
+        await this.downloadRepoContents(`${repoPath}/${item.name}`, itemPath, commitHash);
       } else if (item.type === 'file') {
         // Download the file
         await this.downloadFile(item.download_url, itemPath);
@@ -64,16 +62,16 @@ export class CacheService {
     }
   }
 
-  // Main function to download the entire repository
-  private async downloadRepository(): Promise<void> {
+  // Main function to download the entire repository for a specific commit
+  private async downloadRepository(commitHash?: string): Promise<void> {
     const targetDir = './osrs-cache';
     if (!fs.existsSync(targetDir)) {
       fs.mkdirSync(targetDir, { recursive: true });
     }
 
     try {
-      console.log('Starting repository download...');
-      await this.downloadRepoContents('', targetDir);
+      console.log(`Starting repository download${commitHash ? ` for commit ${commitHash}` : ''}...`);
+      await this.downloadRepoContents('', targetDir, commitHash);
       console.log('Repository download complete.');
     } catch (error) {
       console.error('Failed to download the repository:', error);
@@ -81,7 +79,7 @@ export class CacheService {
   }
 
   // Fetches the latest commit hash from the repository
-  private async getLatestCommitHash(): Promise<string> {
+  public async getLatestCommitHash(): Promise<string> {
     const commitsUrl = `${GITHUB_API_URL}/${REPO_OWNER}/${REPO_NAME}/commits`;
     try {
       const response = await axios.get(commitsUrl);
@@ -92,6 +90,21 @@ export class CacheService {
     }
   }
 
+  // Validates if a commit hash exists in the repository
+  public async validateCommitHash(commitHash: string): Promise<boolean> {
+    const commitUrl = `${GITHUB_API_URL}/${REPO_OWNER}/${REPO_NAME}/commits/${commitHash}`;
+    try {
+      await axios.get(commitUrl);
+      return true;
+    } catch (error) {
+      if (error.response?.status === 404 || error.response?.status === 422) {
+        return false;
+      }
+      console.error(`Error validating commit hash ${commitHash}:`, error.message);
+      throw new Error(`Failed to validate commit hash ${commitHash}: ${error.message}`);
+    }
+  }
+
   // Updates the version file with the latest commit hash
   private updateVersionFile(version: string): void {
     const versionFilePath = path.join('./osrs-cache', VERSION_FILE);
@@ -99,22 +112,8 @@ export class CacheService {
     console.log(`Updated version file: ${versionFilePath} with version: ${version}`);
   }
 
-  // Checks if the cache is up to date
-  public async isCacheUpToDate(): Promise<boolean> {
-    const latestVersion = await this.getLatestCommitHash();
-    const localVersion = this.getLocalVersion();
-    console.log('cache latestVersion ', latestVersion);
-    console.log('cache-localVersion ', localVersion);
-
-    // If the local version doesn't exist or doesn't match the latest, return false
-    if (!localVersion || localVersion !== latestVersion) {
-      return false;
-    }
-    return true;
-  }
-
-  // Reads the local version from the cache-version.txt file
-  private getLocalVersion(): string | null {
+  // Gets the current local cache commit hash
+  public getLocalCommitHash(): string | null {
     if (!fs.existsSync(versionFilePath)) {
       return null;
     }
