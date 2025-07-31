@@ -1,7 +1,7 @@
 import { ParamID, Struct } from '@abextm/cache2';
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { PARAM_ID } from '../../../core/data/param-ids';
 import { replacer } from '../../../core/json-replacer';
 import { EnumService } from '../../../core/services/enum/enum.service';
@@ -183,6 +183,7 @@ export class TasksCommand {
   }
 
   private writeToFile(obj: any, fileNameAndPath: string): void {
+    mkdirSync('./out', { recursive: true });
     writeFileSync('./out/' + fileNameAndPath, JSON.stringify(obj, null, 2));
   }
 
